@@ -1,0 +1,36 @@
+pipeline {
+    agent any
+
+    stages {
+        
+        stage ('Checkout') {
+            steps {
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: '53b9a441-f627-48a6-837b-50648c57b2b5', url: 'https://github.com/TashikMoin/CICD-VPS']]])
+            }
+        }
+        
+        stage ('Build and Push to DockerHub') {
+            steps {
+                script {
+                    withCredentials([string(credentialsId: 'tashikmoin', variable: 'DockerHubCredentials')]) {
+                        sh 'sudo docker login -u tashikmoin -p ${DockerHubCredentials}'
+                    }
+                    sh 'sudo docker build -t tashikmoin/cicd-vps .'
+                    sh 'sudo docker push tashikmoin/cicd-vps'
+                }
+            }
+        }
+        
+        stage ('Deploy') {
+            steps {
+                script {
+                    withCredentials([file(credentialsId: 'keyfile', variable: 'keyfile')]) {
+                        sh "ssh -tt -i /home/jenkins/.ssh/key.pem webserver@20.216.40.112 'cd / && sudo docker pull tashikmoin/cicd-vps && sudo docker stop sampleApp || true && sudo docker rm sampleApp || true && sudo docker run -d -p 80:80 --name sampleApp tashikmoin/cicd-vps' " 
+                        
+                    }
+                }
+            }
+        }
+        
+    }
+}
