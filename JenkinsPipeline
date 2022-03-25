@@ -25,7 +25,7 @@ pipeline {
             steps {
                 script {
                     withCredentials([file(credentialsId: 'keyid', variable: 'keyfile')]) {
-                        sh "ssh -tt -i ${keyfile} webserver@20.216.40.112 'cd / && sudo docker pull tashikmoin/cicd-vps && sudo docker stop sampleApp || true && sudo docker rm sampleApp || true && sudo docker run -d -p 80:80 --name sampleApp tashikmoin/cicd-vps' " 
+                        sh "ssh -tt -i ${keyfile} webserver@20.216.40.112 'cd / && sudo docker pull tashikmoin/cicd-vps && sudo docker stop sampleApp || true && sudo docker rm sampleApp || true && sudo docker run --restart=always -d -p 80:80 --name sampleApp tashikmoin/cicd-vps' " 
                         
                     }
                 }
